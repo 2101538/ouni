@@ -6,7 +6,7 @@
     <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; overflow-x: hidden; }
         .main-title { text-align: center; color: #2c3e50; margin-bottom: 10px; }
-        
+        footer{ text-align: center; color: #2c3e50; margin: 10px ; font-size: 14px; }
         /* 設定區域 */
         .setup-container { max-width: 800px; margin: 0 auto 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
         textarea { width: 42%; height: 200px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; font-size: 16px; resize: none; }
@@ -116,6 +116,7 @@
         <textarea id="namesInput">鷗倪1號&#10;鷗倪2號&#10;鷗倪3號&#10;鷗倪4號&#10;鷗倪5號</textarea>
         <textarea id="prizesInput">一等獎&#10;二等獎&#10;三等獎&#10;四等獎&#10;五等獎</textarea>
     </div>
+	<p></p>
     <button class="btn-start" onclick="initGame()">開始抽獎</button>
 </div>
 
@@ -134,7 +135,7 @@
         <button class="reset-btn" onclick="location.reload()">重新開始</button>
     </div>
 </div>
-
+<footer>逆水寒搖光聽雪-鷗倪設計編寫製作</footer>
 <script>
 let canvas, ctx, names = [], prizes = [], paths = [];
 let columns, spacing, rowCount = 20; 
