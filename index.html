@@ -2,14 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>終極爬梯抽獎 - 直式文字優化版</title>
+    <title>終極爬梯抽獎</title>
     <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; overflow-x: hidden; }
         .main-title { text-align: center; color: #2c3e50; margin-bottom: 10px; }
         
         /* 設定區域 */
         .setup-container { max-width: 800px; margin: 0 auto 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-        textarea { width: 42%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; font-size: 14px; resize: none; }
+        textarea { width: 42%; height: 200px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; font-size: 16px; resize: none; }
         
         /* 遊戲主體佈局 */
         .game-wrapper { 
@@ -94,7 +94,7 @@
             padding: 20px; 
             border-radius: 12px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-            height: 750px; 
+            height: 700px; 
             display: flex; 
             flex-direction: column; 
         }
@@ -109,14 +109,14 @@
 </head>
 <body>
 
-<h2 class="main-title"> 荷老闆的爬梯抽獎 </h2>
+<h2 class="main-title"> 逆水寒-荷老闆年終爬樓梯抽獎 </h2>
 
 <div id="setup" class="setup-container">
     <div style="display:flex; justify-content: center; gap: 10px;">
-        <textarea id="namesInput">小明&#10;小華&#10;老王&#10;阿美&#10;阿強&#10;小琳</textarea>
-        <textarea id="prizesInput">一等獎&#10;二等獎&#10;三等獎&#10;安慰獎&#10;銘謝惠顧&#10;請喝珍奶</textarea>
+        <textarea id="namesInput">鷗倪1號&#10;鷗倪2號&#10;鷗倪3號&#10;鷗倪4號&#10;鷗倪5號</textarea>
+        <textarea id="prizesInput">一等獎&#10;二等獎&#10;三等獎&#10;四等獎&#10;五等獎</textarea>
     </div>
-    <button class="btn-start" onclick="initGame()">開始佈置會場</button>
+    <button class="btn-start" onclick="initGame()">開始抽獎</button>
 </div>
 
 <div id="gameArea" class="game-wrapper" style="display:none;">
