@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>終極爬梯抽獎</title>
+    <style>
+        body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; overflow-x: hidden; }
+        .main-title { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+        footer{ text-align: center; color: #2c3e50; margin: 10px ; font-size: 14px; }
+        /* 設定區域 */
+        .setup-container { max-width: 800px; margin: 0 auto 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        textarea { width: 42%; height: 200px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; font-size: 16px; resize: none; }
+        
+        /* 遊戲主體佈局 */
+        .game-wrapper { 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            gap: 20px; 
+            max-width: 100vw; 
+            margin: auto; 
+        }
+        
+        /* 左側遊戲區 */
+        .canvas-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            flex: 1; 
+            overflow-x: auto; 
+            min-width: 0; 
+        }
+
+        #inner-game-area { min-width: 600px; } 
+
+        /* 上方人員按鈕區域 - 改為直式 */
+        #playerButtons { 
+            display: flex; 
+            justify-content: space-around; 
+            margin-bottom: 20px; 
+            align-items: flex-end; /* 底部對齊梯子 */
+            height: 120px; /* 給予足夠高度顯示直式名字 */
+        }
+        
+        .p-btn { 
+            writing-mode: vertical-rl; /* 直式排列重點 */
+            text-orientation: mixed;
+            padding: 10px 5px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 14px; 
+            transition: all 0.2s; 
+            letter-spacing: 2px;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+        
+        @keyframes activeBlink {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.1); filter: brightness(1.4); box-shadow: 0 0 15px yellow; }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        .is-walking { animation: activeBlink 0.4s infinite !important; z-index: 10; }
+
+        canvas { background: #fff; border: 2px solid #444; display: block; margin: 0 auto; border-radius: 4px; }
+
+        /* 下方獎勵區域 - 改為直式 */
+        #prizeLabels { 
+            display: flex; 
+            justify-content: space-around; 
+            margin-top: 10px; 
+            align-items: flex-start;
+            height: 120px; /* 給予高度顯示直式獎勵 */
+        }
+        .prize-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-align: left;
+        }
+
+        /* 右側名單區 */
+        .result-sidebar { 
+            width: 250px; 
+            flex-shrink: 0; 
+            background: #2c3e50; 
+            color: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            height: 700px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .result-sidebar h3 { border-bottom: 2px solid #e67e22; padding-bottom: 10px; margin-top: 0; text-align: center; color: #e67e22; }
+        #history { list-style: none; padding: 0; overflow-y: auto; flex: 1; margin: 0; }
+        #history li { background: rgba(255,255,255,0.1); margin-bottom: 8px; padding: 10px; border-radius: 6px; border-left: 4px solid #fff; font-size: 14px; }
+
+        .btn-start { padding: 10px 40px; font-size: 1.1rem; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .reset-btn { margin-top: 10px; width: 100%; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<h2 class="main-title"> 逆水寒-荷老闆年終爬樓梯抽獎 </h2>
+
+<div id="setup" class="setup-container">
+    <div style="display:flex; justify-content: center; gap: 10px;">
+        <textarea id="namesInput">鷗倪1號&#10;鷗倪2號&#10;鷗倪3號&#10;鷗倪4號&#10;鷗倪5號</textarea>
+        <textarea id="prizesInput">一等獎&#10;二等獎&#10;三等獎&#10;四等獎&#10;五等獎</textarea>
+    </div>
+	<p></p>
+    <button class="btn-start" onclick="initGame()">開始抽獎</button>
+</div>
+
+<div id="gameArea" class="game-wrapper" style="display:none;">
+    <div class="canvas-container">
+        <div id="inner-game-area">
+            <div id="playerButtons"></div>
+            <canvas id="ladderCanvas"></canvas>
+            <div id="prizeLabels"></div>
+        </div>
+    </div>
+
+    <div class="result-sidebar">
+        <h3>🏆 得獎名單</h3>
+        <ul id="history"></ul>
+        <button class="reset-btn" onclick="location.reload()">重新開始</button>
+    </div>
+</div>
+<footer>逆水寒搖光聽雪-鷗倪設計編寫製作</footer>
+<script>
+let canvas, ctx, names = [], prizes = [], paths = [];
+let columns, spacing, rowCount = 20; 
+let colors = ["#E74C3C", "#3498DB", "#2ECC71", "#F1C40F", "#9B59B6", "#1ABC9C", "#E67E22", "#E84393", "#55E6C1", "#58B19F"];
+
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playEffect(freq, type, duration, vol=0.05) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+function initGame() {
+    initAudio();
+    names = document.getElementById('namesInput').value.trim().split('\n').filter(n => n);
+    prizes = document.getElementById('prizesInput').value.trim().split('\n').filter(p => p);
+    
+    if (names.length !== prizes.length) { alert("人數與獎項數量不符！"); return; }
+
+    names = names.sort(() => Math.random() - 0.5);
+    prizes = prizes.sort(() => Math.random() - 0.5);
+
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('gameArea').style.display = 'flex';
+    
+    setupCanvas();
+    createLadder();
+    drawLadder();
+    createButtons();
+}
+
+function setupCanvas() {
+    canvas = document.getElementById('ladderCanvas');
+    ctx = canvas.getContext('2d');
+    columns = names.length;
+    
+    // 動態間距：人數多時縮小，但至少給予 40px 寬度以容納直式文字
+    spacing = Math.max(40, Math.min(80, 1000 / (columns + 1)));
+    
+    let totalWidth = spacing * (columns + 1);
+    canvas.width = totalWidth;
+    canvas.height = 450;
+    document.getElementById('inner-game-area').style.width = totalWidth + "px";
+}
+
+function createLadder() {
+    paths = [];
+    for (let i = 0; i < rowCount; i++) {
+        let row = new Array(columns - 1).fill(false);
+        for (let j = 0; j < columns - 1; j++) {
+            if (Math.random() > 0.4 && (j === 0 || !row[j-1])) row[j] = true;
+        }
+        paths.push(row);
+    }
+}
+
+function drawLadder() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 2;
+    const prizeLabels = document.getElementById('prizeLabels');
+    prizeLabels.innerHTML = "";
+    
+    for (let i = 0; i < columns; i++) {
+        let x = (i + 1) * spacing;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        
+        let div = document.createElement('div');
+        div.className = "prize-text";
+        div.style.width = spacing + "px";
+        div.id = "prize-" + i;
+        div.innerText = "？ ？ ？";
+        prizeLabels.appendChild(div);
+    }
+    
+    for (let i = 0; i < rowCount; i++) {
+        let y = 20 + i * ((canvas.height - 40) / rowCount);
+        for (let j = 0; j < columns - 1; j++) {
+            if (paths[i][j]) {
+                ctx.beginPath(); ctx.moveTo((j + 1) * spacing, y);
+                ctx.lineTo((j + 2) * spacing, y); ctx.stroke();
+            }
+        }
+    }
+}
+
+function createButtons() {
+    const btnContainer = document.getElementById('playerButtons');
+    btnContainer.innerHTML = "";
+    names.forEach((name, index) => {
+        let btn = document.createElement('button');
+        btn.className = "p-btn";
+        btn.id = "p-btn-" + index;
+        btn.innerText = name;
+        // 人多時自動縮小字體
+        if(columns > 20) btn.style.fontSize = "12px";
+        btn.style.backgroundColor = colors[index % colors.length];
+        btn.onclick = () => startWalk(index, btn);
+        btnContainer.appendChild(btn);
+    });
+}
+
+function startWalk(colIndex, btn) {
+    if (btn.disabled) return;
+    document.querySelectorAll('.p-btn').forEach(b => b.disabled = true);
+    btn.classList.add('is-walking');
+    
+    let currentX = colIndex;
+    const pathPoints = [{x: (currentX + 1) * spacing, y: 0}];
+    const playerColor = colors[colIndex % colors.length];
+
+    for (let i = 0; i < rowCount; i++) {
+        let yPos = 20 + i * ((canvas.height - 40) / rowCount);
+        pathPoints.push({x: (currentX + 1) * spacing, y: yPos});
+        if (currentX > 0 && paths[i][currentX - 1]) currentX--; 
+        else if (currentX < columns - 1 && paths[i][currentX]) currentX++;
+        pathPoints.push({x: (currentX + 1) * spacing, y: yPos});
+    }
+    pathPoints.push({x: (currentX + 1) * spacing, y: canvas.height});
+
+    animateWalk(pathPoints, names[colIndex], prizes[currentX], playerColor, currentX, btn);
+}
+
+function animateWalk(points, name, prize, color, finalIdx, btn) {
+    let i = 0;
+    // 根據人數調整速度 (人越多爬越快，節省時間)
+    let speed = columns > 15 ? 100 : 200;
+
+    function step() {
+        if (i < points.length - 1) {
+            ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 5;
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[i+1].x, points[i+1].y); ctx.stroke();
+            playEffect(200 + (i * 12), 'sine', 0.1);
+            i++;
+            setTimeout(step, speed); 
+        } else {
+            playEffect(523, 'triangle', 0.4); 
+            btn.classList.remove('is-walking');
+            btn.style.opacity = "0.3";
+            document.querySelectorAll('.p-btn').forEach(b => {
+                if (b.style.opacity !== "0.3") b.disabled = false;
+            });
+            const pLabel = document.getElementById("prize-" + finalIdx);
+            pLabel.innerText = prize;
+            pLabel.style.color = color;
+            
+            const log = document.getElementById('history');
+            const li = document.createElement('li');
+            li.style.borderLeftColor = color;
+            li.innerHTML = `<b>${name}</b> ⮕ ${prize}`;
+            log.appendChild(li);
+            log.scrollTop = log.scrollHeight;
+        }
+    }
+    step();
+}
+</script>
+</body>
+</html>
