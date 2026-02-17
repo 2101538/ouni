@@ -2,40 +2,77 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>動態抽後剔除轉盤</title>
+    <title>豪華慢速轉盤 - 彈窗剔除版</title>
     <style>
-        body { font-family: 'PingFang TC', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        :root { --primary: #4a90e2; --accent: #ff4757; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .main-layout { display: flex; gap: 30px; max-width: 1100px; width: 100%; }
-        .config-panel { flex: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .wheel-panel { flex: 2; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; position: relative; }
+        .config-panel { flex: 1; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .wheel-panel { flex: 1.5; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; position: relative; }
         
-        textarea { width: 100%; height: 120px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; }
-        button { background: #ff4757; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 18px; width: 100%; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #ff6b81; transform: translateY(-2px); }
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        textarea { width: 100%; height: 120px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; padding: 12px; box-sizing: border-box; font-size: 14px; }
+        .option-group { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 1px solid #eee; cursor: pointer; }
+        
+        button#spinBtn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 20px; width: 100%; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3); }
+        button#spinBtn:hover { transform: scale(1.02); background: #ff6b81; }
+        button#spinBtn:disabled { background: #ccc; transform: none; box-shadow: none; }
 
-        /* 轉盤容器 */
-        .wheel-container { position: relative; margin: 20px auto; width: 400px; height: 400px; }
-        #wheelCanvas { width: 100%; height: 100%; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); }
-        .pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #333; z-index: 10; }
+        /* 轉盤外殼 */
+        .wheel-container { position: relative; margin: 20px auto; width: 450px; height: 450px; }
+        
+        /* 旋轉核心：設定 7 秒與極慢減速曲線 */
+        #wheelCanvas { 
+            width: 100%; 
+            height: 100%; 
+            transition: transform 7s cubic-bezier(0.1, 0, 0, 1); 
+            border-radius: 50%;
+        }
+        
+        /* 指標 */
+        .pointer { 
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%); 
+            width: 0; height: 0; border-left: 15px solid transparent; 
+            border-right: 15px solid transparent; border-top: 30px solid #2d3436; 
+            z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2)); 
+        }
 
-        .history { margin-top: 20px; text-align: left; height: 150px; overflow-y: auto; background: #fafafa; padding: 10px; border-radius: 6px; font-size: 14px; }
-        .count-badge { background: #2f3542; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        /* 中獎彈窗 */
+        #resultModal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: white; padding: 50px; border-radius: 30px; text-align: center; 
+            max-width: 450px; width: 85%; animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-content h1 { color: var(--accent); font-size: 48px; margin: 10px 0; }
+        .modal-content p { font-size: 24px; color: #555; margin-bottom: 35px; }
+        .close-btn { background: #2f3542; color: white; border: none; padding: 12px 40px; border-radius: 50px; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .close-btn:hover { background: #000; }
+        
+        .history { margin-top: 20px; height: 120px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; font-size: 14px; text-align: left; }
     </style>
 </head>
 <body>
 
-    <h1>🎯 自動剔除抽獎系統</h1>
+    <h1 style="color: #2d3436;">轉盤抽獎</h1>
 
     <div class="main-layout">
         <div class="config-panel">
-            <h3>👥 剩餘人員 <span id="userCount" class="count-badge">0</span></h3>
-            <textarea id="namesInput" placeholder="輸入名單，每行一人">張三&#10;李四&#10;王五&#10;趙六&#10;錢七&#10;孫八</textarea>
+            <h3>👥 1. 人員名單</h3>
+            <textarea id="namesInput" oninput="updateWheel()" placeholder="輸入人名，每行一人">鷗倪1號&#10;鷗倪2號&#10;鷗倪3號&#10;鷗倪4號&#10;鷗倪5號&#10;鷗倪6號</textarea>
             
-            <h3>🎁 獎項池</h3>
-            <textarea id="prizesInput" placeholder="輸入獎項">大吉：PS5&#10;中吉：Switch&#10;小吉：咖啡券</textarea>
+            <h3>🎁 2. 獎項池</h3>
+            <textarea id="prizesInput" placeholder="輸入獎項">頭獎：天賞&#10;貳獎：2880&#10;參獎：1880</textarea>
+
+            <label class="option-group">
+                <input type="checkbox" id="autoRemove" checked>
+                <span><strong>確認結果後，自動移除該人員</strong></span>
+            </label>
             
-            <button id="spinBtn" onclick="spin()">🎉 開始抽獎</button>
+            <button id="spinBtn" onclick="spin()">🔥 開始抽獎 (慢速運轉)</button>
             
             <div class="history">
                 <strong>📜 獲獎紀錄：</strong>
@@ -48,119 +85,137 @@
                 <div class="pointer"></div>
                 <canvas id="wheelCanvas" width="800" height="800"></canvas>
             </div>
-            <h2 id="status">準備就緒！</h2>
+            <h2 id="status" style="color: var(--primary);">祝您中大獎！</h2>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <div class="modal-content">
+            <div style="font-size: 80px; margin-bottom: 10px;">🏆</div>
+            <h1 id="modalWinner">中獎者</h1>
+            <p id="modalPrize"></p>
+            <button class="close-btn" onclick="closeModal()">確認並更新名單</button>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
-        const namesTextarea = document.getElementById('namesInput');
-        const prizesTextarea = document.getElementById('prizesInput');
+        const namesInput = document.getElementById('namesInput');
+        const prizesInput = document.getElementById('prizesInput');
+        const autoRemoveCheckbox = document.getElementById('autoRemove');
         const statusText = document.getElementById('status');
         const spinBtn = document.getElementById('spinBtn');
+        const modal = document.getElementById('resultModal');
 
-        let names = [];
         let currentRotation = 0;
         let isSpinning = false;
+        let activeNames = [];
+        let lastWinnerIndex = -1;
 
-        // 初始化與監聽輸入
+        // 更新轉盤
         function updateWheel() {
-            names = namesTextarea.value.trim().split('\n').filter(n => n !== "");
-            document.getElementById('userCount').innerText = names.length;
+            activeNames = namesInput.value.trim().split('\n').filter(n => n.trim() !== "");
             drawWheel();
         }
 
-        namesTextarea.addEventListener('input', updateWheel);
-        updateWheel();
-
-        // 繪製轉盤
+        // 繪製轉盤圖形
         function drawWheel() {
-            const num = names.length;
+            const num = activeNames.length;
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const radius = centerX - 10;
+            const radius = centerX - 20;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (num === 0) {
                 ctx.textAlign = "center";
-                ctx.font = "40px Arial";
-                ctx.fillText("請輸入名單", centerX, centerY);
+                ctx.font = "30px Arial";
+                ctx.fillText("請輸入名單...", centerX, centerY);
                 return;
             }
 
             const angleStep = (Math.PI * 2) / num;
-
-            names.forEach((name, i) => {
+            activeNames.forEach((name, i) => {
                 const startAngle = i * angleStep;
                 const endAngle = (i + 1) * angleStep;
-
+                
                 // 畫扇區
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.fillStyle = `hsl(${(i * 360) / num}, 70%, 70%)`;
+                ctx.fillStyle = `hsl(${(i * 360) / num}, 75%, 80%)`;
                 ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.5)";
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // 畫文字
+                // 畫文字 (旋轉 90 度讓文字放射狀排列)
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + angleStep / 2);
                 ctx.textAlign = "right";
-                ctx.fillStyle = "#333";
-                ctx.font = "bold 30px Arial";
-                ctx.fillText(name, radius - 30, 10);
+                ctx.fillStyle = "#2d3436";
+                ctx.font = "bold 26px Arial";
+                ctx.fillText(name, radius - 40, 10);
                 ctx.restore();
             });
         }
 
-        // 抽獎邏輯
+        // 執行旋轉
         function spin() {
-            if (isSpinning || names.length === 0) return;
-            
-            const prizes = prizesTextarea.value.trim().split('\n').filter(p => p !== "");
-            if (prizes.length === 0) { alert("請輸入獎項！"); return; }
+            if (isSpinning || activeNames.length === 0) return;
+            const prizes = prizesInput.value.trim().split('\n').filter(p => p !== "");
+            if (prizes.length === 0) { alert("請輸入獎項池內容！"); return; }
 
             isSpinning = true;
             spinBtn.disabled = true;
-            statusText.innerText = "轉動中...";
+            statusText.innerText = "慢速轉動中，請屏息以待...";
 
-            // 隨機決定中獎索引
-            const selectedIdx = Math.floor(Math.random() * names.length);
+            // 決定贏家
+            lastWinnerIndex = Math.floor(Math.random() * activeNames.length);
             const luckyPrize = prizes[Math.floor(Math.random() * prizes.length)];
             
-            // 計算旋轉角度：讓指標停在選中的扇區
-            // 指標在正上方(270度)，轉盤座標系0度在右側，需要補償計算
-            const sectorDegree = 360 / names.length;
-            const stopDegree = 360 - (selectedIdx * sectorDegree) - (sectorDegree / 2);
+            // 計算角度：10圈 + 命中角度
+            const sectorDegree = 360 / activeNames.length;
+            const stopDegree = 360 - (lastWinnerIndex * sectorDegree) - (sectorDegree / 2);
             
-            const extraRounds = 360 * 8; // 轉8圈
-            currentRotation += extraRounds + (stopDegree - (currentRotation % 360));
-            
+            // 設定旋轉度數 (7秒)
+            currentRotation += (360 * 10) + (stopDegree - (currentRotation % 360));
             canvas.style.transform = `rotate(${currentRotation}deg)`;
 
+            // 等待動畫結束 (7000毫秒 = 7秒)
             setTimeout(() => {
-                const winner = names[selectedIdx];
-                const resultMsg = `${winner} 抽中了 [${luckyPrize}]`;
-                statusText.innerText = `🎊 ${resultMsg}`;
-
-                // 1. 紀錄結果
-                const log = document.createElement('div');
-                log.innerText = `[${new Date().toLocaleTimeString()}] ${resultMsg}`;
-                document.getElementById('historyList').prepend(log);
-
-                // 2. 抽後剔除：從名單陣列中刪除
-                names.splice(selectedIdx, 1);
+                document.getElementById('modalWinner').innerText = activeNames[lastWinnerIndex];
+                document.getElementById('modalPrize').innerText = `獲得了：${luckyPrize}`;
+                modal.style.display = "flex";
                 
-                // 3. 更新輸入框與轉盤
-                namesTextarea.value = names.join('\n');
-                updateWheel();
+                // 寫入紀錄
+                const log = document.createElement('div');
+                log.style.marginBottom = "5px";
+                log.innerHTML = `<small style="color:#999">[${new Date().toLocaleTimeString()}]</small> <strong>${activeNames[lastWinnerIndex]}</strong> - ${luckyPrize}`;
+                document.getElementById('historyList').prepend(log);
 
                 isSpinning = false;
                 spinBtn.disabled = false;
-            }, 4000);
+                statusText.innerText = "恭喜！請關閉彈窗查看更新名單。";
+            }, 7000); 
         }
+
+        // 關閉彈窗並決定是否剔除
+        function closeModal() {
+            modal.style.display = "none";
+            
+            if (autoRemoveCheckbox.checked && lastWinnerIndex !== -1) {
+                activeNames.splice(lastWinnerIndex, 1);
+                namesInput.value = activeNames.join('\n');
+                updateWheel(); 
+                lastWinnerIndex = -1;
+                statusText.innerText = "名單已更新，準備下一輪抽獎！";
+            }
+        }
+
+        // 頁面加載時初始化
+        updateWheel();
     </script>
 </body>
 </html>
